@@ -1,0 +1,15 @@
+instance = await Auction.deployed()
+//경매
+instance.setAuction(10,'핸드폰','1',{from: accounts[0]})
+instance.setAuction(10,'책','2',{from: accounts[0]})
+//검색
+instance.getNumberOfAuctioning('1')
+
+//bid
+instance.methods['bid(string)']('1',{from: accounts[1], value: 2*(10**18)})
+
+//cancel
+instance.methods['cancelAuction(string)']('1',{from: accounts[0]})
+
+//withdraw(사용자)
+instance.methods['withdraw(string)']('1',{from: accounts[1]})
