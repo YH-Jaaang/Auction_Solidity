@@ -2,14 +2,12 @@
 pragma solidity ^0.5.1;
 pragma experimental ABIEncoderV2;
 import "./AuctionInfo.sol";
+import "openzeppelin-solidity/contracts/token/ERC721/ERC721Full.sol";
 
-contract Auction is AuctionInfos {
+contract Auction is AuctionInfos, ERC721Full{
 
-    constructor () public {
+    constructor() ERC721Full("AuctionToken", "ACT") public {
     }
-
-    //bid배열
-    //
 
     //경매 등록
     function setAuction(uint8 _minuteSet, string memory _name, string memory _number) public returns(bool){
@@ -63,6 +61,8 @@ contract Auction is AuctionInfos {
 
             address payable payableOwner = address(uint160(AuctionList[_number].auctionOwner));
             payableOwner.transfer(amount);
+
+            _mint(msg.sender, _number);
 
             emit WithdrawalEvent(payableOwner, amount);
         }
