@@ -22,6 +22,7 @@ contract AuctionInfos {
     }
 
     struct Auctioning {
+        uint256 auctionStart;
         uint256 auctionEnd;
         uint256 highestBid;
         auctionState state;
@@ -36,34 +37,19 @@ contract AuctionInfos {
     //각매수 신청자의 주소를 총 매수 신청액에 사상하는 매칭
     mapping(string => mapping(address => uint))  bids;
 
-    //현재 경매중인 물품 목록
-    string[] auctionNames;
+    //현재 경매 중인 물품 번호
+    string[] itemUnderAuction;
+    //현재 경매 중인 물품 번호 index
+    mapping(string => uint256) itemUnderAuctionIndex;
+    //자신이 보유 중인 경매 중인 물품 번호
+    mapping(address => string[]) itemUnderAuctionOfOwn;
+    //자신이 보유 중인 경매 중인 물품 번호 index
+    mapping(address => mapping(string => uint256)) itemUnderAuctionOfOwnIndex;
+    //자신이 보유 중인 경매 완료 물품 => nft
+    //자신이 보유 중인 경매 완료 물품 index => nft
 
     auctionState public STATE;
 
-    //모든 경매중인 목록 검색
-    //        function getAllAuctioning() public view returns (
-    //            allAuctioning memory
-    //        ) {
-    //            allAuctioning memory result;
-    //
-    //            result. =;
-    //            result. =;
-    //            result. =;
-    //            return result;
-    //        }
-
-    //해당 경매중인 물품 상세 검색
-    function getNumberOfAuctioning(string memory _number) public view returns (
-        Auctioning memory
-    ) {
-        Auctioning memory result;
-        result.auctionEnd = AuctionList[_number].auctionEnd;
-        result.highestBid = AuctionList[_number].highestBid;
-        result.state = AuctionList[_number].state;
-        result.name = AuctionList[_number].name;
-        return result;
-    }
 
     function bid() public payable returns (bool){}
 
@@ -71,6 +57,7 @@ contract AuctionInfos {
 
     function cancelAuction() external returns (bool){}
 
+    event SetAuctionEvent(AuctionInfo auctionInfo);
     event BidEvent(address indexed highestBidder, uint256 highestBid);
     event WithdrawalEvent(address withdrawer, uint256 amount);
     event CanceledEvent(string message, uint256 time);
