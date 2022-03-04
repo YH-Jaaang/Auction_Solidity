@@ -12,7 +12,7 @@ contract Auction is AuctionInfos {
 
     //경매 등록
     function setAuction(uint256 _minuteSet, string memory _name, string memory _number) public returns (bool){
-        require(_minuteSet > 0 , "Please set the auction time.");
+        require(_minuteSet > 0, "Please set the auction time.");
         require(bytes(_name).length != 0, "Please enter the auction name.");
         require(bytes(_number).length != 0, "Please enter the auction number.");
         require(keccak256(bytes(AuctionList[_number].number)) != keccak256(bytes(_number)), "The same number already exists.");
@@ -50,11 +50,18 @@ contract Auction is AuctionInfos {
         require(now <= AuctionList[_number].auctionEnd, "The auction is already over.");
         require(bids[_number][msg.sender] + msg.value > AuctionList[_number].highestBid, "You can't bid, Make a higher Bid");
         require(AuctionList[_number].state != auctionState.CANCELLED, "This auction has already been canceled.");
+        require(bytes(_number).length != 0, "Please enter the auction number.");
 
         AuctionList[_number].highestBidder = msg.sender;
         AuctionList[_number].highestBid = msg.value;
         bidders[_number] = msg.sender;
         bids[_number][msg.sender] = bids[_number][msg.sender] + msg.value;
+
+        //현재 자신이 참여중인 경매
+//        if (keccak256(bytes(participatingAuction[msg.sender][participatingAuctionIndex[msg.sender][_number]])) != keccak256(bytes(_number))) {
+//            participatingAuction[msg.sender].push(_number);
+//            participatingAuctionIndex[msg.sender][_number] = participatingAuction[msg.sender].length;
+//        }
 
         emit BidEvent(AuctionList[_number].highestBidder, AuctionList[_number].highestBid);
 
@@ -65,6 +72,7 @@ contract Auction is AuctionInfos {
     function cancelAuction(string calldata _number) external returns (bool){
         require(now <= AuctionList[_number].auctionEnd, "The auction is already over.");
         require(msg.sender == AuctionList[_number].auctionOwner, "msg.sender and auction owner are different.");
+        require(bytes(_number).length != 0, "Please enter the auction number.");
 
         AuctionList[_number].state = auctionState.CANCELLED;
 
@@ -77,33 +85,36 @@ contract Auction is AuctionInfos {
     }
 
     //withdraw() 경매가 끝났을때 참가자가 자신의 매수 신청액을 회수하는데 사용
-    function withdraw(string memory _number) public returns (bool){
-        require(AuctionList[_number].auctionEnd < now);
+    function withdraw(string memory _number) public {
+        require(bytes(_number).length != 0, "Please enter the auction number.");
 
-        uint amount;
+        uint256 amount;
         if (msg.sender == AuctionList[_number].highestBidder && AuctionList[_number].state != auctionState.CANCELLED) {
+            require(AuctionList[_number].auctionEnd <= now, "The auction is still underway.");
 
-            amount = bids[_number][AuctionList[_number].highestBidder];
-            bids[_number][AuctionList[_number].highestBidder] = 0;
+            amount = bids[_number][msg.sender];
+            bids[_number][msg.sender] = 0;
 
             address payable payableOwner = address(uint160(AuctionList[_number].auctionOwner));
             payableOwner.transfer(amount);
 
-            delete AuctionList[_number];
             initAuction(_number);
             initAuctionOfOwn(AuctionList[_number].auctionOwner, _number);
             //_mint(msg.sender, _number);
-
+            //현재 자신이 참여중인 경매 제거
             emit WithdrawalEvent(payableOwner, amount);
         }
         else {
+            if (AuctionList[_number].state != auctionState.CANCELLED) {
+                require(AuctionList[_number].auctionEnd <= now, "The auction is still underway.");
+            }
             amount = bids[_number][msg.sender];
             bids[_number][msg.sender] = 0;
             msg.sender.transfer(amount);
+            //현재 자신이 참여중인 경매 제거
             emit WithdrawalEvent(msg.sender, amount);
         }
 
-        return true;
     }
 
     function initAuction(string memory _number) private returns (bool){
@@ -169,5 +180,12 @@ contract Auction is AuctionInfos {
         string[] memory
     ) {
         return itemUnderAuctionOfOwn[_address];
+    }
+
+    //현재 자신이 참여중인 경매
+    function getAllParticipatingAuction(address _address) public view returns (
+        string[] memory
+    ) {
+        return participatingAuction[_address];
     }
 }

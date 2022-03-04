@@ -1,12 +1,13 @@
 instance = await Auction.deployed()
 //경매
-instance.setAuction(10,'핸드폰','1',{from: accounts[0]})
-instance.setAuction(10,'책','2',{from: accounts[0]})
+instance.setAuction(1,'핸드폰','1',{from: accounts[0]})
+instance.setAuction(5,'책','2',{from: accounts[0]})
+instance.setAuction(3,'노트북','3',{from: accounts[0]})
 //검색
 instance.getNumberOfAuctioning('1')
 instance.getAllAuctioning()
 instance.getAllAuctioningOfOwn(accounts[0])
-
+instance.getAllParticipatingAuction(accounts[1])
 //bid
 instance.methods['bid(string)']('1',{from: accounts[1], value: 2*(10**18)})
 

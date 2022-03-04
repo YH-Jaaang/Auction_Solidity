@@ -35,7 +35,7 @@ contract AuctionInfos {
     mapping(string => address) bidders;
 
     //각매수 신청자의 주소를 총 매수 신청액에 사상하는 매칭
-    mapping(string => mapping(address => uint))  bids;
+    mapping(string => mapping(address => uint256))  bids;
 
     //현재 경매 중인 물품 번호
     string[] itemUnderAuction;
@@ -45,6 +45,10 @@ contract AuctionInfos {
     mapping(address => string[]) itemUnderAuctionOfOwn;
     //자신이 보유 중인 경매 중인 물품 번호 index
     mapping(address => mapping(string => uint256)) itemUnderAuctionOfOwnIndex;
+    //현재 자신이 참여중인 경매
+    mapping(address => string[]) participatingAuction;
+    //현재 자신이 참여중인 경매 index
+    mapping(address => mapping(string => uint256)) participatingAuctionIndex;
     //자신이 보유 중인 경매 완료 물품 => nft
     //자신이 보유 중인 경매 완료 물품 index => nft
 
