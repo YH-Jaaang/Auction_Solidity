@@ -7,16 +7,15 @@ import "./AuctionInfo.sol";
 
 contract Auction is AuctionInfos {
 
-
     //    constructor() ERC721Full("AuctionToken", "ACT") public {
     //    }
 
     //경매 등록
-    function setAuction(uint16 _minuteSet, string memory _name, string memory _number) public returns (bool){
-        require(_minuteSet > 0, "");
-        require(bytes(_name).length != 0, "");
-        require(bytes(_number).length != 0, "");
-        require(keccak256(bytes(AuctionList[_number].number)) != keccak256(bytes(_number)), "already exist");
+    function setAuction(uint256 _minuteSet, string memory _name, string memory _number) public returns (bool){
+        require(_minuteSet > 0 , "Please set the auction time.");
+        require(bytes(_name).length != 0, "Please enter the auction name.");
+        require(bytes(_number).length != 0, "Please enter the auction number.");
+        require(keccak256(bytes(AuctionList[_number].number)) != keccak256(bytes(_number)), "The same number already exists.");
 
         uint256 unixTime = now;
 
@@ -50,7 +49,7 @@ contract Auction is AuctionInfos {
     function bid(string memory _number) public payable {
         require(now <= AuctionList[_number].auctionEnd, "The auction is already over.");
         require(bids[_number][msg.sender] + msg.value > AuctionList[_number].highestBid, "You can't bid, Make a higher Bid");
-        require(AuctionList[_number].state != auctionState.CANCELLED, "");
+        require(AuctionList[_number].state != auctionState.CANCELLED, "This auction has already been canceled.");
 
         AuctionList[_number].highestBidder = msg.sender;
         AuctionList[_number].highestBid = msg.value;
@@ -61,11 +60,11 @@ contract Auction is AuctionInfos {
 
     }
     // cancle 경매 소유자가 자신이 시작한 경매를 취소
-    // 취소했을 경우, 그 이전 비드 상황 어떻게 고려
-    //      1.값이 존재하고 취소했을 경우, 경매 처리 2. 다시 되돌려준다
+    // 취소했을 경우, 그 이전 비드 상황 어떻게 고려(2번 채택)
+    // 1.값이 존재하고 취소했을 경우, 경매 처리 2. 다시 되돌려준다
     function cancelAuction(string calldata _number) external returns (bool){
         require(now <= AuctionList[_number].auctionEnd, "The auction is already over.");
-        require(msg.sender == AuctionList[_number].auctionOwner);
+        require(msg.sender == AuctionList[_number].auctionOwner, "msg.sender and auction owner are different.");
 
         AuctionList[_number].state = auctionState.CANCELLED;
 
@@ -82,12 +81,8 @@ contract Auction is AuctionInfos {
         require(AuctionList[_number].auctionEnd < now);
 
         uint amount;
-        if (msg.sender == AuctionList[_number].highestBidder) {
-            if(AuctionList[_number].state != auctionState.CANCELLED){
+        if (msg.sender == AuctionList[_number].highestBidder && AuctionList[_number].state != auctionState.CANCELLED) {
 
-                initAuction(_number);
-                initAuctionOfOwn(AuctionList[_number].auctionOwner, _number);
-            }
             amount = bids[_number][AuctionList[_number].highestBidder];
             bids[_number][AuctionList[_number].highestBidder] = 0;
 
@@ -95,6 +90,8 @@ contract Auction is AuctionInfos {
             payableOwner.transfer(amount);
 
             delete AuctionList[_number];
+            initAuction(_number);
+            initAuctionOfOwn(AuctionList[_number].auctionOwner, _number);
             //_mint(msg.sender, _number);
 
             emit WithdrawalEvent(payableOwner, amount);
@@ -110,8 +107,6 @@ contract Auction is AuctionInfos {
     }
 
     function initAuction(string memory _number) private returns (bool){
-
-        //require(now > AuctionList[_number].auctionEnd, "You can't destruct the contract,The auction is still open");
 
         uint256 lastIndex = itemUnderAuction.length - 1;
 
