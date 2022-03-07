@@ -6,6 +6,7 @@
 ## 프로젝트 구조
 ```bash
 - Auction_Solidity
+    +- server         ==> Express 소스 파일들
     +- truffle 
       +- abi          ==> 스마트 컨트랙트의 abi 파일들
       +- address      ==> 스마트 컨트랙트의 address 주소
@@ -26,3 +27,7 @@
   $ truffle migrate --network ganache
 ```
 
+### 서버 실행
+```bash
+  $ node .bin/www
+```
