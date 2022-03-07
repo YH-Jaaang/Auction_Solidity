@@ -1,11 +1,9 @@
-#Auction
-
 # 개요
 본 프로젝트는 이더리움 기반 경매 시스템 입니다.
 
 ## 프로젝트 구조
 ```bash
-- Auction_Solidity
+- Ethereum_Auction
     +- server         ==> Express 소스 파일들
     +- truffle 
       +- abi          ==> 스마트 컨트랙트의 abi 파일들
